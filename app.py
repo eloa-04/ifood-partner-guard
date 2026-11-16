@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import google.generativeai as genai
 
 # ─── CONFIGURAÇÃO DA PÁGINA ───────────────────────────────────────────────────
 st.set_page_config(
@@ -8,6 +9,10 @@ st.set_page_config(
     page_icon="🍕",
     layout="wide"
 )
+
+# ─── GEMINI ───────────────────────────────────────────────────────────────────
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ─── DADOS SIMULADOS ──────────────────────────────────────────────────────────
 dados = {
@@ -25,7 +30,7 @@ dados = {
 
 df = pd.DataFrame(dados)
 
-# ─── CÁLCULO DO SCORE DE SAÚDE ────────────────────────────────────────────────
+# ─── SCORE ────────────────────────────────────────────────────────────────────
 def calcular_score(row):
     score = 0
     score += min(row["Pedidos_Ultimos_30d"] / 400 * 30, 30)
@@ -52,25 +57,15 @@ st.title("🍕 iFood Partner Guard")
 st.markdown("**Monitoramento de saúde de restaurantes parceiros com detecção de risco de churn**")
 st.divider()
 
-# KPIs
 col1, col2, col3 = st.columns(3)
-criticos = len(df[df["Status"] == "🔴 Crítico"])
-atencao  = len(df[df["Status"] == "🟡 Atenção"])
-saudavel = len(df[df["Status"] == "🟢 Saudável"])
-
-col1.metric("🔴 Críticos",  criticos)
-col2.metric("🟡 Atenção",   atencao)
-col3.metric("🟢 Saudáveis", saudavel)
+col1.metric("🔴 Críticos",  len(df[df["Status"] == "🔴 Crítico"]))
+col2.metric("🟡 Atenção",   len(df[df["Status"] == "🟡 Atenção"]))
+col3.metric("🟢 Saudáveis", len(df[df["Status"] == "🟢 Saudável"]))
 
 st.divider()
 
-# Gráfico
 fig = px.bar(
-    df,
-    x="Score",
-    y="Restaurante",
-    orientation="h",
-    color="Status",
+    df, x="Score", y="Restaurante", orientation="h", color="Status",
     color_discrete_map={
         "🟢 Saudável": "#00C853",
         "🟡 Atenção":  "#FFD600",
@@ -82,11 +77,47 @@ fig = px.bar(
 fig.update_layout(showlegend=True, height=420)
 st.plotly_chart(fig, use_container_width=True)
 
-# Tabela
 st.subheader("📋 Tabela de Restaurantes")
 st.dataframe(
     df[["Restaurante", "Pedidos_Ultimos_30d", "Avaliacao_Media",
         "Reclamacoes_Ultimos_30d", "Dias_Sem_Pedido", "Score", "Status"]],
-    use_container_width=True,
-    hide_index=True
+    use_container_width=True, hide_index=True
 )
+
+# ─── AGENTE DE IA ─────────────────────────────────────────────────────────────
+st.divider()
+st.subheader("🤖 Agente de IA — Plano de Ação")
+st.markdown("Selecione um restaurante em risco e gere um plano de ação personalizado.")
+
+restaurantes_risco = df[df["Status"] != "🟢 Saudável"]["Restaurante"].tolist()
+selecionado = st.selectbox("Escolha o restaurante:", restaurantes_risco)
+
+if st.button("🚀 Gerar Plano de Ação com IA"):
+    dados_rest = df[df["Restaurante"] == selecionado].iloc[0]
+
+    prompt = f"""
+Você é um consultor especialista em marketplaces de delivery como iFood.
+
+Um Executivo de Contas precisa de ajuda para recuperar o restaurante abaixo, que está em risco de churn.
+
+**Restaurante:** {dados_rest['Restaurante']}
+**Score de Saúde:** {dados_rest['Score']}/100 — {dados_rest['Status']}
+**Pedidos nos últimos 30 dias:** {dados_rest['Pedidos_Ultimos_30d']}
+**Avaliação média:** {dados_rest['Avaliacao_Media']}
+**Reclamações nos últimos 30 dias:** {dados_rest['Reclamacoes_Ultimos_30d']}
+**Dias sem pedido:** {dados_rest['Dias_Sem_Pedido']}
+
+Gere um plano de ação direto e prático com:
+1. Diagnóstico em 2 frases (qual é o problema principal)
+2. 3 ações imediatas (próximas 48h)
+3. 2 ações de médio prazo (próximas 2 semanas)
+4. Uma métrica para acompanhar a recuperação
+
+Seja específico, objetivo e use linguagem de negócios.
+"""
+
+    with st.spinner("Analisando dados e gerando plano de ação..."):
+        resposta = model.generate_content(prompt)
+
+    st.success("✅ Plano gerado com sucesso!")
+    st.markdown(resposta.text)
