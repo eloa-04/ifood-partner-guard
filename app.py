@@ -83,7 +83,8 @@ restaurantes_risco = df[df["Status"] != "Saudavel"]["Restaurante"].tolist()
 selecionado = st.selectbox("Escolha o restaurante:", restaurantes_risco)
 
 if ids:
-    modelo_escolhido = st.selectbox("Modelo de IA:", ids)
+    MODELO = "openai/gpt-oss-20b"
+st.caption(f"Modelo em uso: {MODELO}")
 
     if st.button("Gerar Plano de Acao com IA"):
         r = df[df["Restaurante"] == selecionado].iloc[0]
@@ -106,7 +107,7 @@ Gere um plano de acao com:
 """
         with st.spinner("Gerando plano de acao..."):
             resposta = client.chat.completions.create(
-                model=modelo_escolhido,
+                                model=MODELO,
                 messages=[{"role": "user", "content": prompt}]
             )
         st.success("Plano gerado!")
