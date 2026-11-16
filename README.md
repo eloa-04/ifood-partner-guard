@@ -53,7 +53,7 @@ Alerta por e-mail ao Executivo de Contas
 
 ## Demo
 
-[Acessar o dashboard ao vivo](COLE_AQUI_O_LINK_DO_STREAMLIT)
+[Acessar o dashboard ao vivo](https://ifood-partner-guard-m4kenwmqhkdf85uhnhxddb.streamlit.app/)
 
 ## Como rodar localmente
 
