@@ -6,7 +6,7 @@ from groq import Groq
 # ─── CONFIGURAÇÃO DA PÁGINA ───────────────────────────────────────────────────
 st.set_page_config(
     page_title="iFood Partner Guard",
-    page_icon="🍕",
+        page_icon=":pizza:",
     layout="wide"
 )
 
@@ -68,4 +68,4 @@ df["Status"] = df["Score"].apply(classificar)
 df = df.sort_values("Score", ascending=True)
 
 # ─── INTERFACE ────────────────────────────────────────────────────────────────
-st.title("🍕 iFood
+st.title("iFood Partner Guard")
