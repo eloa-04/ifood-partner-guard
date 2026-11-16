@@ -117,7 +117,7 @@ Seja específico, objetivo e use linguagem de negócios.
 
     with st.spinner("Analisando dados e gerando plano de ação..."):
         resposta = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}]
         )
 
