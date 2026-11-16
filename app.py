@@ -7,6 +7,8 @@ st.set_page_config(page_title="iFood Partner Guard", layout="wide")
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
+MODELO = "openai/gpt-oss-20b"
+
 dados = {
     "Restaurante": [
         "Burger King Lapa", "Pizza Hut Centro", "Sushi Mania",
@@ -30,9 +32,12 @@ def calcular_score(row):
     return round(score, 1)
 
 def classificar(score):
-    if score >= 70:   return "Saudavel"
-    elif score >= 45: return "Atencao"
-    else:             return "Critico"
+    if score >= 70:
+        return "Saudavel"
+    elif score >= 45:
+        return "Atencao"
+    else:
+        return "Critico"
 
 df["Score"]  = df.apply(calcular_score, axis=1)
 df["Status"] = df["Score"].apply(classificar)
@@ -69,26 +74,14 @@ st.dataframe(
 st.divider()
 st.subheader("Agente de IA - Plano de Acao")
 st.markdown("Selecione um restaurante em risco e gere um plano de acao personalizado.")
-
-# mostra modelos disponíveis para debug
-try:
-    modelos = client.models.list()
-    ids = [m.id for m in modelos.data]
-    st.caption("Modelos disponiveis: " + ", ".join(ids))
-except Exception as e:
-    st.error(f"Erro ao listar modelos: {e}")
-    ids = []
+st.caption(f"Modelo em uso: {MODELO}")
 
 restaurantes_risco = df[df["Status"] != "Saudavel"]["Restaurante"].tolist()
 selecionado = st.selectbox("Escolha o restaurante:", restaurantes_risco)
 
-if ids:
-    MODELO = "openai/gpt-oss-20b"
-st.caption(f"Modelo em uso: {MODELO}")
-
-    if st.button("Gerar Plano de Acao com IA"):
-        r = df[df["Restaurante"] == selecionado].iloc[0]
-        prompt = f"""
+if st.button("Gerar Plano de Acao com IA"):
+    r = df[df["Restaurante"] == selecionado].iloc[0]
+    prompt = f"""
 Voce e um consultor especialista em marketplaces de delivery como iFood.
 Um Executivo de Contas precisa recuperar o restaurante abaixo, em risco de churn.
 
@@ -105,10 +98,10 @@ Gere um plano de acao com:
 3. 2 acoes de medio prazo (proximas 2 semanas)
 4. Uma metrica para acompanhar a recuperacao
 """
-        with st.spinner("Gerando plano de acao..."):
-            resposta = client.chat.completions.create(
-                                model=MODELO,
-                messages=[{"role": "user", "content": prompt}]
-            )
-        st.success("Plano gerado!")
-        st.markdown(resposta.choices[0].message.content)
+    with st.spinner("Gerando plano de acao..."):
+        resposta = client.chat.completions.create(
+            model=MODELO,
+            messages=[{"role": "user", "content": prompt}]
+        )
+    st.success("Plano gerado!")
+    st.markdown(resposta.choices[0].message.content)
