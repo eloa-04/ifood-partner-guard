@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import google.generativeai as genai
+from groq import Groq
 
 # ─── CONFIGURAÇÃO DA PÁGINA ───────────────────────────────────────────────────
 st.set_page_config(
@@ -10,9 +10,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# ─── GEMINI ───────────────────────────────────────────────────────────────────
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-2.0-flash")
+# ─── GROQ ─────────────────────────────────────────────────────────────────────
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
 # ─── DADOS SIMULADOS ──────────────────────────────────────────────────────────
 dados = {
     "Restaurante": [
@@ -99,12 +99,12 @@ Você é um consultor especialista em marketplaces de delivery como iFood.
 
 Um Executivo de Contas precisa de ajuda para recuperar o restaurante abaixo, que está em risco de churn.
 
-**Restaurante:** {dados_rest['Restaurante']}
-**Score de Saúde:** {dados_rest['Score']}/100 — {dados_rest['Status']}
-**Pedidos nos últimos 30 dias:** {dados_rest['Pedidos_Ultimos_30d']}
-**Avaliação média:** {dados_rest['Avaliacao_Media']}
-**Reclamações nos últimos 30 dias:** {dados_rest['Reclamacoes_Ultimos_30d']}
-**Dias sem pedido:** {dados_rest['Dias_Sem_Pedido']}
+Restaurante: {dados_rest['Restaurante']}
+Score de Saúde: {dados_rest['Score']}/100 — {dados_rest['Status']}
+Pedidos nos últimos 30 dias: {dados_rest['Pedidos_Ultimos_30d']}
+Avaliação média: {dados_rest['Avaliacao_Media']}
+Reclamações nos últimos 30 dias: {dados_rest['Reclamacoes_Ultimos_30d']}
+Dias sem pedido: {dados_rest['Dias_Sem_Pedido']}
 
 Gere um plano de ação direto e prático com:
 1. Diagnóstico em 2 frases (qual é o problema principal)
@@ -116,7 +116,10 @@ Seja específico, objetivo e use linguagem de negócios.
 """
 
     with st.spinner("Analisando dados e gerando plano de ação..."):
-        resposta = model.generate_content(prompt)
+        resposta = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "user", "content": prompt}]
+        )
 
     st.success("✅ Plano gerado com sucesso!")
-    st.markdown(resposta.text)
+    st.markdown(resposta.choices[0].message.content)
