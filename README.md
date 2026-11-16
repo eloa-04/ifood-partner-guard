@@ -22,7 +22,7 @@ classificados em Crítico, Atenção e Saudável
 em risco com ações imediatas e de médio prazo
 
 ## Automação
-
+![Fluxo N8N](./Fluxo%20N8N.png)
 Um workflow no N8N roda diariamente às 8h, filtra os restaurantes críticos
 e envia alertas automáticos por e-mail para o Executivo de Contas responsável,
 garantindo que nenhum parceiro em risco passe despercebido.
