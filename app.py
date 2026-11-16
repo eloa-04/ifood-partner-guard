@@ -6,7 +6,7 @@ from groq import Groq
 # ─── CONFIGURAÇÃO DA PÁGINA ───────────────────────────────────────────────────
 st.set_page_config(
     page_title="iFood Partner Guard",
-        page_icon=":pizza:",
+            page_icon="🍕",
     layout="wide"
 )
 
