@@ -61,3 +61,14 @@ Alerta por e-mail ao Executivo de Contas
 pip install streamlit pandas plotly groq
 streamlit run app.py
 ```
+## Projeto 2 — Boletim Estratégico Automatizado
+
+Fluxo N8N que coleta notícias do mercado de delivery semanalmente,
+classifica os movimentos estratégicos com IA e envia um boletim
+executivo por e-mail para a liderança.
+
+**Fluxo:**
+Schedule semanal → Coleta RSS (Google News) → Extração e limpeza → 
+Análise com IA (Groq) → Envio por e-mail
+
+![Boletim N8N](./Fluxo%20N8N%20(not%C3%ADcias).png)
